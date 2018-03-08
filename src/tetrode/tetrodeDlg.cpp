@@ -29,6 +29,9 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
     ON_WM_PAINT()
     ON_WM_QUERYDRAGICON()
+    ON_BN_CLICKED(IDC_BUTTON1, &CTetrodeDlg::OnBnClickedButton1)
+    ON_BN_CLICKED(IDC_BUTTON3, &CTetrodeDlg::OnBnClickedButton3)
+    ON_BN_CLICKED(IDC_BUTTON2, &CTetrodeDlg::OnBnClickedButton2)
 END_MESSAGE_MAP()
 
 
@@ -82,4 +85,38 @@ void CTetrodeDlg::OnPaint()
 HCURSOR CTetrodeDlg::OnQueryDragIcon()
 {
     return static_cast<HCURSOR>(m_hIcon);
+}
+
+
+void CTetrodeDlg::OnBnClickedButton1()
+{
+    m_eSimulationMode = sm_it;
+    UpdateData(TRUE);
+    StartSimulationThread();
+}
+
+
+void CTetrodeDlg::OnBnClickedButton3()
+{
+    m_eSimulationMode = sm_it;
+    UpdateData(TRUE);
+    StartSimulationThread();
+}
+
+
+void CTetrodeDlg::OnBnClickedButton2()
+{
+    StopSimulationThread();
+}
+
+
+void CTetrodeDlg::OnSimulation()
+{
+    simulation_mode sm;
+    Invoke([&] () { sm = m_eSimulationMode; });
+    while (m_bWorking)
+    {
+        Sleep(1000); // stub
+    }
+    CSimulationDialog::OnSimulation();
 }
