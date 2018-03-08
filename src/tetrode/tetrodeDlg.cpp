@@ -24,6 +24,9 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
 void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
 {
     CSimulationDialog::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_MODEL_PLOT, m_cSystemPlot);
+    DDX_Control(pDX, IDC_ANODE_CURRENT_OF_TIME_PLOT, m_cITPlot);
+    DDX_Control(pDX, IDC_ANODE_CURRENT_OF_POTENTIAL_PLOT, m_cIVPlot);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <util/common/gui/SimulationDialog.h>
+#include <util/common/gui/PlotControl.h>
 
 // CTetrodeDlg dialog
 class CTetrodeDlg : public CSimulationDialog
@@ -36,4 +37,7 @@ public:
     afx_msg void OnBnClickedButton3();
     afx_msg void OnBnClickedButton2();
     void OnSimulation();
+    CPlotControl m_cSystemPlot;
+    CPlotControl m_cITPlot;
+    CPlotControl m_cIVPlot;
 };
