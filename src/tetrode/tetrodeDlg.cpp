@@ -18,6 +18,9 @@
 CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     : CSimulationDialog(CTetrodeDlg::IDD, pParent)
     , data(model::make_model_data())
+    , m_bPointsVisible(TRUE)
+    , m_bTriangulationVisible(FALSE)
+    , m_bDirichletCellsVisible(FALSE)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -41,6 +44,9 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT4, data.params->ndt);
     DDX_Text(pDX, IDC_EDIT5, data.params->dx);
     DDX_Text(pDX, IDC_EDIT6, data.params->dy);
+    DDX_Check(pDX, IDC_CHECK1, m_bPointsVisible);
+    DDX_Check(pDX, IDC_CHECK2, m_bTriangulationVisible);
+    DDX_Check(pDX, IDC_CHECK3, m_bDirichletCellsVisible);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
@@ -49,6 +55,9 @@ BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
     ON_BN_CLICKED(IDC_BUTTON1, &CTetrodeDlg::OnBnClickedButton1)
     ON_BN_CLICKED(IDC_BUTTON3, &CTetrodeDlg::OnBnClickedButton3)
     ON_BN_CLICKED(IDC_BUTTON2, &CTetrodeDlg::OnBnClickedButton2)
+    ON_BN_CLICKED(IDC_CHECK1, &CTetrodeDlg::OnBnClickedCheck1)
+    ON_BN_CLICKED(IDC_CHECK2, &CTetrodeDlg::OnBnClickedCheck1)
+    ON_BN_CLICKED(IDC_CHECK3, &CTetrodeDlg::OnBnClickedCheck1)
 END_MESSAGE_MAP()
 
 
@@ -64,6 +73,8 @@ BOOL CTetrodeDlg::OnInitDialog()
     SetIcon(m_hIcon, FALSE);        // Set small icon
 
     // TODO: Add extra initialization here
+
+    OnBnClickedCheck1();
 
     m_cSystemPlot.plot_layer.with(model::make_root_drawable(
         plot::make_world_mapper(data.system_data.world), {
@@ -158,4 +169,13 @@ void CTetrodeDlg::OnSimulation()
         }
     }
     CSimulationDialog::OnSimulation();
+}
+
+
+void CTetrodeDlg::OnBnClickedCheck1()
+{
+    UpdateData(TRUE);
+    data.system_data.point_plot->visible = (m_bPointsVisible == TRUE);
+    data.system_data.triangulation_plot->visible = (m_bTriangulationVisible == TRUE);
+    data.system_data.dirichlet_cell_plot->visible = (m_bDirichletCellsVisible == TRUE);
 }

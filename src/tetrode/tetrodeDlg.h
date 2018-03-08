@@ -43,4 +43,8 @@ public:
     CPlotControl m_cSystemPlot;
     CPlotControl m_cITPlot;
     CPlotControl m_cIVPlot;
+    afx_msg void OnBnClickedCheck1();
+    BOOL m_bPointsVisible;
+    BOOL m_bTriangulationVisible;
+    BOOL m_bDirichletCellsVisible;
 };
