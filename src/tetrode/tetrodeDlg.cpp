@@ -28,6 +28,19 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_MODEL_PLOT, m_cSystemPlot);
     DDX_Control(pDX, IDC_ANODE_CURRENT_OF_TIME_PLOT, m_cITPlot);
     DDX_Control(pDX, IDC_ANODE_CURRENT_OF_POTENTIAL_PLOT, m_cIVPlot);
+    DDX_Text(pDX, IDC_EDIT1, data.params->v0);
+    DDX_Text(pDX, IDC_EDIT2, data.params->i0);
+    DDX_Text(pDX, IDC_EDIT2, data.params->i0);
+    DDX_Text(pDX, IDC_EDIT7, data.params->u1);
+    DDX_Text(pDX, IDC_EDIT8, data.params->u2);
+    DDX_Text(pDX, IDC_EDIT9, data.params->ua);
+    DDX_Text(pDX, IDC_EDIT10, data.params->x1);
+    DDX_Text(pDX, IDC_EDIT11, data.params->x2);
+    DDX_Text(pDX, IDC_EDIT12, data.params->w);
+    DDX_Text(pDX, IDC_EDIT3, data.params->dt);
+    DDX_Text(pDX, IDC_EDIT4, data.params->ndt);
+    DDX_Text(pDX, IDC_EDIT5, data.params->dx);
+    DDX_Text(pDX, IDC_EDIT6, data.params->dy);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
