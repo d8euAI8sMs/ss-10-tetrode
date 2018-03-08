@@ -41,8 +41,7 @@ public:
     afx_msg void OnBnClickedButton2();
     void OnSimulation();
     CPlotControl m_cSystemPlot;
-    CPlotControl m_cITPlot;
-    CPlotControl m_cIVPlot;
+    CPlotControl m_cAnodeCurrentPlot;
     afx_msg void OnBnClickedCheck1();
     BOOL m_bPointsVisible;
     BOOL m_bTriangulationVisible;

@@ -29,8 +29,7 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
 {
     CSimulationDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_MODEL_PLOT, m_cSystemPlot);
-    DDX_Control(pDX, IDC_ANODE_CURRENT_OF_TIME_PLOT, m_cITPlot);
-    DDX_Control(pDX, IDC_ANODE_CURRENT_OF_POTENTIAL_PLOT, m_cIVPlot);
+    DDX_Control(pDX, IDC_ANODE_CURRENT_PLOT, m_cAnodeCurrentPlot);
     DDX_Text(pDX, IDC_EDIT1, data.params->v0);
     DDX_Text(pDX, IDC_EDIT2, data.params->i0);
     DDX_Text(pDX, IDC_EDIT2, data.params->i0);
