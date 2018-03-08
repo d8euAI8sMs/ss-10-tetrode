@@ -65,6 +65,21 @@ BOOL CTetrodeDlg::OnInitDialog()
 
     // TODO: Add extra initialization here
 
+    m_cSystemPlot.plot_layer.with(model::make_root_drawable(
+        plot::make_world_mapper(data.system_data.world), {
+        data.system_data.dirichlet_cell_plot,
+        data.system_data.triangulation_plot,
+        data.system_data.system_plot,
+        data.system_data.point_plot
+    }));
+
+    m_cSystemPlot.background = plot::palette::brush();
+    m_cSystemPlot.triple_buffered = true;
+
+    m_cSystemPlot.RedrawBuffer();
+    m_cSystemPlot.SwapBuffers();
+    m_cSystemPlot.RedrawWindow();
+
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -134,6 +149,13 @@ void CTetrodeDlg::OnSimulation()
     while (m_bWorking)
     {
         Sleep(1000); // stub
+
+        if (sm == sm_it)
+        {
+            m_cSystemPlot.RedrawBuffer();
+            m_cSystemPlot.SwapBuffers();
+            Invoke([this] () { m_cSystemPlot.RedrawWindow(); });
+        }
     }
     CSimulationDialog::OnSimulation();
 }
