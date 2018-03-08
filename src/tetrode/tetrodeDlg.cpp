@@ -17,6 +17,7 @@
 
 CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     : CSimulationDialog(CTetrodeDlg::IDD, pParent)
+    , data(model::make_model_data())
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }

@@ -6,6 +6,8 @@
 #include <util/common/gui/SimulationDialog.h>
 #include <util/common/gui/PlotControl.h>
 
+#include "model.h"
+
 // CTetrodeDlg dialog
 class CTetrodeDlg : public CSimulationDialog
 {
@@ -32,6 +34,7 @@ protected:
     afx_msg HCURSOR OnQueryDragIcon();
     DECLARE_MESSAGE_MAP()
     simulation_mode m_eSimulationMode;
+    model::model_data data;
 public:
     afx_msg void OnBnClickedButton1();
     afx_msg void OnBnClickedButton3();
