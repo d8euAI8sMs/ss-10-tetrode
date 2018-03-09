@@ -343,6 +343,7 @@ namespace model
         {
             auto & ti = m.triangles()[t];
             if (ti.flags & (geom::mesh::phantom | geom::mesh::superstruct)) continue;
+            #pragma omp parallel for
             for (int l = - (int) max_lines; l <= (int) max_lines; ++l)
             {
                 double val = l * delta;
@@ -652,7 +653,8 @@ namespace model
     {
         double s1 = 0, s2 = 0;
 
-        for (size_t i = 0; i < x.size(); ++i)
+        #pragma omp parallel for reduction(+:s1,s2)
+        for (int i = 0; i < (int)x.size(); ++i)
         {
             s1 += (x[i] - x1[i]) * (x[i] - x1[i]);
             s2 += x[i] * x[i];
@@ -738,15 +740,22 @@ namespace model
         potential.resize(m->vertices().size());
         charges.resize(m->vertices().size());
         areas.resize(m->triangles().size());
-        for (geom::mesh::idx_t i = 0; i < m->triangles().size(); ++i)
+
+        #pragma omp parallel for
+        for (int i0 = 0; i0 < (int)m->triangles().size(); ++i0)
+        {
+            geom::mesh::idx_t i(i0);
             areas[i] = _area(i);
+        }
     }
 
     inline double particle_particle::collect_charges()
     {
         size_t cur = 0;
-        for (geom::mesh::idx_t i = 0; i < charges.size(); ++i)
+        #pragma omp parallel for
+        for (int i0 = 0; i0 < (int)charges.size(); ++i0)
         {
+            geom::mesh::idx_t i(i0);
             charges[i] = 0;
         }
         std::vector < std::list < size_t > > local_dead;
@@ -846,8 +855,10 @@ namespace model
     inline void particle_particle::_calc_field()
     {
         geom::point2d_t n;
-        for (geom::mesh::idx_t i = 0; i < m->triangles().size(); ++i)
+        #pragma omp parallel for private(n)
+        for (int i0 = 0; i0 < (int) m->triangles().size(); ++i0)
         {
+            geom::mesh::idx_t i(i0);
             if (_grad(i, n))
                 field[i] = n;
             else
