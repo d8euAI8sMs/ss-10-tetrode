@@ -174,6 +174,7 @@ void CTetrodeDlg::OnBnClickedButton2()
 
 void CTetrodeDlg::OnSimulation()
 {
+    omp_set_num_threads(omp_get_num_procs());
     simulation_mode sm;
     Invoke([&] () { sm = m_eSimulationMode; });
     model::adjust(*data.params, *data.system_data.world);
