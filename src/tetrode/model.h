@@ -614,6 +614,7 @@ namespace model
                 {
                     c[vj] += - _potential_of(i) * _dot(i, j);
                 }
+                c[vj] += _charge_dot(i, j);
             }
             ++vj;
         }
