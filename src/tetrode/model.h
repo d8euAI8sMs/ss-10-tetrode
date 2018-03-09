@@ -426,6 +426,8 @@ namespace model
                           geom::mesh::idx_t v) const;
         double _dot(geom::mesh::idx_t i,
                     geom::mesh::idx_t j) const;
+        double _charge_dot(geom::mesh::idx_t i,
+                           geom::mesh::idx_t j) const;
         bool _is_var(geom::mesh::idx_t v) const;
         double _area(geom::mesh::idx_t t) const;
         double _potential_of(geom::mesh::idx_t i) const;
@@ -518,6 +520,58 @@ namespace model
                     p1.a * p2.a +
                     p1.b * p2.b
                 );
+            }
+        }
+        return r;
+    }
+
+    inline double finel_galerkin::_charge_dot(
+        geom::mesh::idx_t i, geom::mesh::idx_t j) const
+    {
+        double r = 0;
+        auto & nt = m->vertices()[i].neighbor_triangles;
+        for (auto it1 = nt.begin(); it1 != nt.end(); ++it1)
+        {
+            auto & ti = m->triangles()[*it1];
+            if ((ti.vertices[0] != j) &&
+                (ti.vertices[1] != j) &&
+                (ti.vertices[2] != j))
+                continue;
+            auto p1 = _make_plane(*it1, i);
+            p1.a *= charges[i]; p1.b *= charges[i]; p1.c *= charges[i];
+            for (auto it2 = nt.begin(); it2 != nt.end(); ++it2)
+            {
+                if (*it1 != *it2)
+                    continue;
+                auto p2 = _make_plane(*it1, j);
+                /* move to a coordinate system in which
+                   the triangle is rectangular:
+
+                   (x, y) -> q0 + u (r0 - q0) + v (s0 - q0)
+
+                   integral over triangle f(x,y)dxdy will
+                   transform into integral |J| f(u,v)dudv,
+                   where u = (0..1), v = (0..1-u), |J| is
+                   Jacobian of the coordinate transformation.
+                 */
+                plane uv1, uv2;
+                auto & q0 = m->point_at(ti.vertices[0]);
+                auto & r0 = m->point_at(ti.vertices[1]);
+                auto & s0 = m->point_at(ti.vertices[2]);
+                uv1.c = p1.c + p1.a * s0.x + p1.b * s0.y;
+                uv1.a = p1.a * (q0.x - s0.x) + p1.b * (q0.y - s0.y);
+                uv1.b = p1.a * (r0.x - s0.x) + p1.b * (r0.y - s0.y);
+                uv2.c = p2.c + p2.a * s0.x + p2.b * s0.y;
+                uv2.a = p2.a * (q0.x - s0.x) + p2.b * (q0.y - s0.y);
+                uv2.b = p2.a * (r0.x - s0.x) + p2.b * (r0.y - s0.y);
+                double d = r0.x * (s0.y - q0.y) +
+                           q0.x * (r0.y - s0.y) +
+                           s0.x * (q0.y - r0.y);
+                r += std::abs(d) / 24 * (uv2.a * uv1.b + uv1.a * uv2.b +
+                               2 * uv1.b * uv2.b + 2 * uv1.a * uv2.a +
+                               4 * uv2.a * uv1.c + 4 * uv2.b * uv1.c +
+                               4 * uv1.b * uv2.c + 4 * uv1.a * uv2.c +
+                               12 * uv1.c * uv2.c);
             }
         }
         return r;
