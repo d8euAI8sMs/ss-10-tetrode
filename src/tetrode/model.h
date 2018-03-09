@@ -365,4 +365,246 @@ namespace model
             }
         }
     }
+
+    /* *************************************************
+       ******** Finite Element Method (Galerkin) *******
+       ************************************************* */
+
+    /* adaptation of learning/ss-9-poisson-ag */
+    class finel_galerkin
+    {
+    private:
+        struct plane { double a, b; };
+        struct sparse_matrix
+        {
+            std::vector < std::vector < std::pair < size_t, double > > > matrix;
+        };
+    private:
+        util::ptr_t < geom::mesh > m;
+        /* here and below: a x = c */
+        /* sparse matrix dim(a) = dim(x) * dim(x) */
+        sparse_matrix a;
+        /* dim(c) = dim(x) */
+        std::vector < double > c;
+        std::vector < double > x;
+        std::vector < double > x1;
+        /* mapping: variable -> mesh vertice */
+        std::vector < geom::mesh::idx_t > vars;
+        const double accuracy_goal;
+        const size_t iters;
+        const parameters & p;
+    public:
+        finel_galerkin(const parameters & p,
+                       util::ptr_t < geom::mesh > m,
+                       double accuracy_goal,
+                       size_t iters = 100)
+            : p(p)
+            , m(m)
+            , iters(iters)
+            , accuracy_goal(accuracy_goal)
+        {
+        }
+    public:
+        void next(std::vector < double > & r);
+        void init();
+    private:
+        void _next();
+        bool _check_accuracy();
+        plane _make_plane(geom::mesh::idx_t t,
+                          geom::mesh::idx_t v) const;
+        double _dot(geom::mesh::idx_t i,
+                    geom::mesh::idx_t j) const;
+        bool _is_var(geom::mesh::idx_t v) const;
+        double _area(geom::mesh::idx_t t) const;
+        double _potential_of(geom::mesh::idx_t i) const;
+    };
+
+    inline bool finel_galerkin::_is_var(geom::mesh::idx_t v) const
+    {
+        return (m->flags_at(v) &
+                (geom::mesh::superstruct | material::ext | material::grid)) == 0;
+    }
+
+    inline double finel_galerkin::_area(geom::mesh::idx_t t) const
+    {
+        auto p1 = m->point_at(m->triangles()[t].vertices[1]) -
+            m->point_at(m->triangles()[t].vertices[0]);
+        auto p2 = m->point_at(m->triangles()[t].vertices[2]) -
+            m->point_at(m->triangles()[t].vertices[0]);
+        return std::abs(p1.x * p2.y - p1.y * p2.x) / 2;
+    }
+
+    inline double finel_galerkin::_potential_of(geom::mesh::idx_t i) const
+    {
+        if (m->flags_at(i) & material::cathode)
+            return p.ua;
+        else if (m->flags_at(i) & material::grid1)
+            return p.u1;
+        else if (m->flags_at(i) & material::grid2)
+            return p.u2;
+        return 0;
+    }
+
+    inline finel_galerkin::plane finel_galerkin::_make_plane(
+        geom::mesh::idx_t t, geom::mesh::idx_t v) const
+    {
+        auto & ti = m->triangles()[t];
+        auto & p1 = m->point_at(ti.vertices[0]);
+        auto & p2 = m->point_at(ti.vertices[1]);
+        auto & p3 = m->point_at(ti.vertices[2]);
+        double d = p1.x * (p2.y - p3.y) +
+                   p2.x * (p3.y - p1.y) +
+                   p3.x * (p1.y - p2.y);
+        if (ti.vertices[0] == v)
+        {
+            return
+            {
+                (p2.y - p3.y) / d,
+                (p3.x - p2.x) / d
+            };
+        }
+        else if (ti.vertices[1] == v)
+        {
+            return
+            {
+                (p3.y - p1.y) / d,
+                (p1.x - p3.x) / d
+            };
+        }
+        else // if (ti.vertices[2] == v)
+        {
+            return
+            {
+                (p1.y - p2.y) / d,
+                (p2.x - p1.x) / d
+            };
+        }
+    }
+
+    inline double finel_galerkin::_dot(
+        geom::mesh::idx_t i, geom::mesh::idx_t j) const
+    {
+        double r = 0;
+        auto & nt = m->vertices()[i].neighbor_triangles;
+        for (auto it1 = nt.begin(); it1 != nt.end(); ++it1)
+        {
+            auto & ti = m->triangles()[*it1];
+            if ((ti.vertices[0] != j) &&
+                (ti.vertices[1] != j) &&
+                (ti.vertices[2] != j))
+                continue;
+            auto p1 = _make_plane(*it1, i);
+            for (auto it2 = nt.begin(); it2 != nt.end(); ++it2)
+            {
+                if (*it1 != *it2)
+                    continue;
+                auto p2 = _make_plane(*it1, j);
+                r += - _area(*it1) * (
+                    p1.a * p2.a +
+                    p1.b * p2.b
+                );
+            }
+        }
+        return r;
+    }
+
+    inline void finel_galerkin::init()
+    {
+        if (!vars.empty()) return;
+
+        vars.resize(m->vertices().size());
+        geom::mesh::idx_t var = 0;
+        for (geom::mesh::idx_t i = 0; i < m->vertices().size(); ++i)
+        {
+            if (!_is_var(i)) continue;
+            vars[var] = i;
+            ++var;
+        }
+        vars.resize(var);
+
+        x.resize(var);
+        x1.resize(var);
+
+        c.resize(var);
+        a.matrix.resize(var);
+        for (geom::mesh::idx_t j = 0, vj = 0; j < m->vertices().size(); ++j)
+        {
+            if (!_is_var(j)) continue;
+            for (geom::mesh::idx_t i = 0, vi = 0; i < m->vertices().size(); ++i)
+            {
+                if (_is_var(i))
+                {
+                    auto d = _dot(i, j);
+                    if (d != 0)
+                        a.matrix[vj].emplace_back(vi, d);
+                    ++vi;
+                }
+                else
+                {
+                    c[vj] += - _potential_of(i) * _dot(i, j);
+                }
+            }
+            ++vj;
+        }
+    }
+
+    inline void finel_galerkin::_next()
+    {
+        /* one iteration of Kaczmarz method
+           without any accuracy checks */
+        double s1, s2, t;
+        for (size_t i = 0; i < a.matrix.size(); ++i)
+        {
+            s1 = s2 = 0;
+            for (size_t k = 0; k < a.matrix[i].size(); ++k)
+            {
+                size_t j = std::get < 0 > (a.matrix[i][k]);
+                double v = std::get < 1 > (a.matrix[i][k]);
+                s1 += v * x[j];
+                s2 += v * v;
+            }
+            t = (c[i] - s1) / s2;
+            for (size_t k = 0; k < a.matrix[i].size(); ++k)
+            {
+                x[std::get < 0 > (a.matrix[i][k])] +=
+                    std::get < 1 > (a.matrix[i][k]) * t;
+            }
+        }
+    }
+
+    inline bool finel_galerkin::_check_accuracy()
+    {
+        double s1 = 0, s2 = 0;
+
+        for (size_t i = 0; i < x.size(); ++i)
+        {
+            s1 += (x[i] - x1[i]) * (x[i] - x1[i]);
+            s2 += x[i] * x[i];
+        }
+
+        return s1 <= accuracy_goal * s2;
+    }
+
+    inline void finel_galerkin::next(std::vector < double > & r)
+    {
+        x[0] = x1[0] = 0.5f;
+        for (size_t i = 1; i < x.size(); ++i)
+            x[i] = x1[i] = 0;
+
+        for (;;)
+        {
+            for (size_t i = 0; i < iters; ++i) _next();
+            if (_check_accuracy()) break;
+            x1 = x;
+        };
+
+        r.resize(m->vertices().size());
+        for (size_t j = 0, k = 0; k < m->vertices().size(); ++k)
+        {
+            if ((j < a.matrix.size()) && (k == vars[j]))
+                r[k] = x[j++];
+            else
+                r[k] = _potential_of(k);
+        }
+    }
 }
