@@ -708,6 +708,7 @@ namespace model
     public:
         void init();
         double collect_charges();
+        void generate_particles();
         void adjust_particles();
     private:
 
@@ -765,6 +766,20 @@ namespace model
             ++it;
         }
         return cur * p.q;
+    }
+
+    inline void particle_particle::generate_particles()
+    {
+        size_t n = (size_t)std::floor(p.i0 / p.dt);
+        for (size_t i = 0; i < n; ++i)
+        {
+            particles.push_back(model::particle
+            {
+                geom::point2d_t{ (rand() / (RAND_MAX + 1.) + 1) * p.w / 100,
+                                 (rand() / (RAND_MAX + 1.) - 0.5) * p.h },
+                geom::point2d_t{ (1 + rand() / (RAND_MAX + 1.) * 0.1) * p.v0, 0 }
+            });
+        }
     }
 
     inline bool particle_particle::_grad(
