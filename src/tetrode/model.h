@@ -71,7 +71,7 @@ namespace model
     {
         plot::world_t::ptr_t world;
         util::ptr_t < geom::mesh > mesh;
-        util::ptr_t < std::list < particle > > data;
+        util::ptr_t < std::vector < particle > > data;
         plot::triangulation_drawable :: ptr_t triangulation_plot;
         plot::dirichlet_cell_drawable :: ptr_t dirichlet_cell_plot;
         plot::drawable::ptr_t system_plot;
@@ -287,7 +287,7 @@ namespace model
 
         md.world = plot::world_t::create();
 
-        md.data = util::create < std::list < particle > > ();
+        md.data = util::create < std::vector < particle > > ();
 
         md.mesh = util::create < geom::mesh > (false, false);
 
@@ -688,7 +688,7 @@ namespace model
     class particle_particle
     {
     private:
-        std::list < particle > & particles;
+        std::vector < particle > & particles;
         util::ptr_t < geom::mesh > m;
         const parameters & p;
         std::vector < double > areas;
@@ -699,7 +699,7 @@ namespace model
     public:
         particle_particle(const parameters & p,
                           util::ptr_t < geom::mesh > m,
-                          std::list < particle > & particles)
+                          std::vector < particle > & particles)
             : p(p)
             , m(std::move(m))
             , particles(particles)
