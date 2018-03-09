@@ -2,6 +2,8 @@
 
 #include <afxwin.h>
 
+#include <omp.h>
+
 #include <list>
 
 #include <util/common/geom/geom.h>
