@@ -49,4 +49,5 @@ public:
     BOOL m_bIsolineVisible;
     UINT m_nIsolineCount;
     double m_lfIsolineDelta;
+    double m_lfAccuracyGoal;
 };

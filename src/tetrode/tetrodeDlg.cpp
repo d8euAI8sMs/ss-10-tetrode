@@ -24,6 +24,7 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     , m_bIsolineVisible(FALSE)
     , m_nIsolineCount(100)
     , m_lfIsolineDelta(0.1)
+    , m_lfAccuracyGoal(1e-12)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -52,6 +53,7 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK4, m_bIsolineVisible);
     DDX_Text(pDX, IDC_EDIT17, m_nIsolineCount);
     DDX_Text(pDX, IDC_EDIT18, m_lfIsolineDelta);
+    DDX_Text(pDX, IDC_EDIT15, m_lfAccuracyGoal);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
