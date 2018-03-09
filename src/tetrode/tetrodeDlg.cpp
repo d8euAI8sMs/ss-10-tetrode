@@ -182,7 +182,12 @@ void CTetrodeDlg::OnSimulation()
         {
             m_cSystemPlot.RedrawBuffer();
             m_cSystemPlot.SwapBuffers();
-            Invoke([this] () { m_cSystemPlot.RedrawWindow(); });
+            m_cAnodeCurrentPlot.RedrawBuffer();
+            m_cAnodeCurrentPlot.SwapBuffers();
+            Invoke([this] () {
+                m_cSystemPlot.RedrawWindow();
+                m_cAnodeCurrentPlot.RedrawWindow();
+            });
         }
     }
     CSimulationDialog::OnSimulation();
