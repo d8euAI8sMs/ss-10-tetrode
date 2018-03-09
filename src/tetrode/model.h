@@ -67,6 +67,7 @@ namespace model
     struct particle
     {
         geom::point2d_t x, v;
+        bool alive;
     };
 
     struct mesh_data
@@ -698,6 +699,7 @@ namespace model
         std::vector < double > charges;
         std::vector < double > potential;
         std::vector < geom::point2d_t > field;
+        std::list < size_t > dead;
     public:
         particle_particle(const parameters & p,
                           util::ptr_t < geom::mesh > m,
@@ -747,25 +749,44 @@ namespace model
         {
             charges[i] = 0;
         }
-        for (auto it = particles.begin(); it != particles.end();)
+        std::vector < std::list < size_t > > local_dead;
+        #pragma omp parallel
         {
-            if (it->x.x >= p.w) ++cur;
-            if ((it->x.x >= p.w) ||
-                (it->x.x <= 0) ||
-                (it->x.y >= p.h / 2) ||
-                (it->x.y <= -p.h / 2))
+            const auto cur_thread = omp_get_thread_num();
+            const auto all_threads = omp_get_num_threads();
+            #pragma omp single
             {
-                it = particles.erase(it);
-                continue;
+                local_dead.resize(all_threads);
             }
-            auto dc = m->find_triangle(it->x);
-            if (dc != SIZE_T_MAX)
+            #pragma omp for
+            for (int i = 0; i < (int)particles.size(); ++i)
             {
-                charges[m->triangles()[dc].vertices[0]] += p.q / areas[dc] / 3;
-                charges[m->triangles()[dc].vertices[1]] += p.q / areas[dc] / 3;
-                charges[m->triangles()[dc].vertices[2]] += p.q / areas[dc] / 3;
+                if (!particles[i].alive) continue;
+                if (particles[i].x.x >= p.w) ++cur;
+                if ((particles[i].x.x >= p.w) ||
+                    (particles[i].x.x <= 0) ||
+                    (particles[i].x.y >= p.h / 2) ||
+                    (particles[i].x.y <= -p.h / 2))
+                {
+                    particles[i].alive = false;
+                    local_dead[cur_thread].push_back(i);
+                    continue;
+                }
+                auto dc = m->find_triangle(particles[i].x);
+                if (dc != SIZE_T_MAX)
+                {
+                    #pragma omp atomic
+                    charges[m->triangles()[dc].vertices[0]] += p.q / areas[dc] / 3;
+                    #pragma omp atomic
+                    charges[m->triangles()[dc].vertices[1]] += p.q / areas[dc] / 3;
+                    #pragma omp atomic
+                    charges[m->triangles()[dc].vertices[2]] += p.q / areas[dc] / 3;
+                }
             }
-            ++it;
+        }
+        for (size_t i = 0; i < local_dead.size(); ++i)
+        {
+            dead.splice(dead.end(), std::move(local_dead[i]));
         }
         return cur * p.q;
     }
@@ -775,12 +796,22 @@ namespace model
         size_t n = (size_t)std::floor(p.i0 / p.dt);
         for (size_t i = 0; i < n; ++i)
         {
-            particles.push_back(model::particle
+            model::particle p0
             {
                 geom::point2d_t{ (rand() / (RAND_MAX + 1.) + 1) * p.w / 100,
                                  (rand() / (RAND_MAX + 1.) - 0.5) * p.h },
-                geom::point2d_t{ (1 + rand() / (RAND_MAX + 1.) * 0.1) * p.v0, 0 }
-            });
+                geom::point2d_t{ (1 + rand() / (RAND_MAX + 1.) * 0.1) * p.v0, 0 },
+                true
+            };
+            if (!dead.empty())
+            {
+                particles[dead.back()] = p0;
+                dead.pop_back();
+            }
+            else
+            {
+                particles.push_back(p0);
+            }
         }
     }
 
@@ -827,12 +858,14 @@ namespace model
     inline void particle_particle::adjust_particles()
     {
         _calc_field();
-        for (auto it = particles.begin(); it != particles.end(); ++it)
+        #pragma omp parallel for
+        for (int i = 0; i < (int)particles.size(); ++i)
         {
-            auto t = m->find_triangle(it->x);
+            if (!particles[i].alive) continue;
+            auto t = m->find_triangle(particles[i].x);
             if (t == SIZE_T_MAX)
                 continue;
-            _adjust_particle(*it, field[t]);
+            _adjust_particle(particles[i], field[t]);
         }
     }
 
