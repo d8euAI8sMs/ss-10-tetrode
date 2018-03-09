@@ -106,6 +106,7 @@ namespace model
     {
         plot_data pd;
         pd.data = util::create < points_t > ();
+        pd.world = plot::world_t::create();
         pd.plot = plot::list_drawable < points_t > :: create
         (
             plot::make_data_source(pd.data),
