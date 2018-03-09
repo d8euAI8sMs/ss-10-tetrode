@@ -221,7 +221,7 @@ namespace model
     {
         std::vector < geom::point2d_t > super =
         {
-            { -p.w, -20 * p.h }, { 2 * p.w, -20 * p.h }, { 2 * p.w, 20 * p.h }, { -p.w, 20 * p.h },
+            { -20 * p.w, -20 * p.h }, { 20 * p.w, -20 * p.h }, { 20 * p.w, 20 * p.h }, { -20 * p.w, 20 * p.h },
         };
 
         md.mesh->init(super);
@@ -255,14 +255,14 @@ namespace model
 
         for (size_t j = 0; j < m; ++j)
         {
-            md.mesh->add(geom::point2d_t(- p.w / 2, j * p.dy), material::ext);
-            md.mesh->add(geom::point2d_t(- 3 * p.w / 2, j * p.dy), material::ext);
+            md.mesh->add(geom::point2d_t(- 19 * p.w, j * p.dy), material::ext);
+            md.mesh->add(geom::point2d_t(- 19 * p.w, j * p.dy), material::ext);
         }
 
-        md.mesh->add(geom::point2d_t(- p.w / 2, - 19 * p.h), material::ext);
-        md.mesh->add(geom::point2d_t(- p.w / 2, + 19 * p.h), material::ext);
-        md.mesh->add(geom::point2d_t(3 * p.w / 2, - 19 * p.h), material::ext);
-        md.mesh->add(geom::point2d_t(3 * p.w / 2, + 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(- 19 * p.w, - 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(- 19 * p.w, + 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(19 * p.w, - 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(19 * p.w, + 19 * p.h), material::ext);
 
         md.mesh->add(geom::point2d_t(0,    - 10 * p.h), material::anode);
         md.mesh->add(geom::point2d_t(p.w,  - 10 * p.h), material::cathode);
