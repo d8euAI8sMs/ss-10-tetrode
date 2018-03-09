@@ -214,7 +214,7 @@ namespace model
     {
         std::vector < geom::point2d_t > super =
         {
-            { -p.w, -p.h }, { 2 * p.w, -p.h }, { 2 * p.w, p.h }, { -p.w, p.h },
+            { -p.w, -20 * p.h }, { 2 * p.w, -20 * p.h }, { 2 * p.w, 20 * p.h }, { -p.w, 20 * p.h },
         };
 
         md.mesh->init(super);
@@ -237,15 +237,34 @@ namespace model
         for (size_t i = 1; i < n - 1; ++i)
         for (size_t j = 0; j < m; ++j)
         {
-            auto p0 = geom::make_point(i * p.dx, -p.h / 2 + j * p.dy);
-            if ((j == 0) || (j == (m - 1)))
-            {
-                md.mesh->add(p0, material::ext);
-                continue;
-            }
-            p0.y += (rand() / (RAND_MAX + 1.) - 0.5) * p.dy / 5;
-            md.mesh->add(p0);
+            md.mesh->add(geom::point2d_t(i * p.dx, -p.h / 2 + j * p.dy));
         }
+
+        for (size_t i = 0; i < n; ++i)
+        {
+            md.mesh->add(geom::point2d_t(i * p.dx, -19 * p.h), material::ext);
+            md.mesh->add(geom::point2d_t(i * p.dx, 19 * p.h), material::ext);
+        }
+
+        for (size_t j = 0; j < m; ++j)
+        {
+            md.mesh->add(geom::point2d_t(- p.w / 2, j * p.dy), material::ext);
+            md.mesh->add(geom::point2d_t(- 3 * p.w / 2, j * p.dy), material::ext);
+        }
+
+        md.mesh->add(geom::point2d_t(- p.w / 2, - 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(- p.w / 2, + 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(3 * p.w / 2, - 19 * p.h), material::ext);
+        md.mesh->add(geom::point2d_t(3 * p.w / 2, + 19 * p.h), material::ext);
+
+        md.mesh->add(geom::point2d_t(0,    - 10 * p.h), material::anode);
+        md.mesh->add(geom::point2d_t(p.w,  - 10 * p.h), material::cathode);
+        md.mesh->add(geom::point2d_t(p.x1, - 10 * p.h), material::grid1);
+        md.mesh->add(geom::point2d_t(p.x2, - 10 * p.h), material::grid2);
+        md.mesh->add(geom::point2d_t(0,    + 10 * p.h), material::anode);
+        md.mesh->add(geom::point2d_t(p.w,  + 10 * p.h), material::cathode);
+        md.mesh->add(geom::point2d_t(p.x1, + 10 * p.h), material::grid1);
+        md.mesh->add(geom::point2d_t(p.x2, + 10 * p.h), material::grid2);
 
         md.mesh->build_polygons = true;
         md.mesh->finish_mesh();
