@@ -174,6 +174,8 @@ void CTetrodeDlg::OnSimulation()
 {
     simulation_mode sm;
     Invoke([&] () { sm = m_eSimulationMode; });
+    model::adjust(*data.params, *data.system_data.world);
+    model::update_system_data(*data.params, data.system_data);
     while (m_bWorking)
     {
         Sleep(1000); // stub
