@@ -643,7 +643,7 @@ namespace model
         }
     public:
         void init();
-        void collect_charges();
+        double collect_charges();
         void adjust_particles();
     private:
 
@@ -673,14 +673,24 @@ namespace model
             areas[i] = _area(i);
     }
 
-    inline void particle_particle::collect_charges()
+    inline double particle_particle::collect_charges()
     {
+        size_t cur = 0;
         for (geom::mesh::idx_t i = 0; i < charges.size(); ++i)
         {
             charges[i] = 0;
         }
-        for (auto it = particles.begin(); it != particles.end(); ++it)
+        for (auto it = particles.begin(); it != particles.end();)
         {
+            if (it->x.x >= p.w) ++cur;
+            if ((it->x.x >= p.w) ||
+                (it->x.x <= 0) ||
+                (it->x.y >= p.h / 2) ||
+                (it->x.y <= -p.h / 2))
+            {
+                it = particles.erase(it);
+                continue;
+            }
             auto dc = m->find_triangle(it->x);
             if (dc != SIZE_T_MAX)
             {
@@ -688,7 +698,9 @@ namespace model
                 charges[m->triangles()[dc].vertices[1]] += p.q / areas[dc] / 3;
                 charges[m->triangles()[dc].vertices[2]] += p.q / areas[dc] / 3;
             }
+            ++it;
         }
+        return cur * p.q;
     }
 
     inline bool particle_particle::_grad(
