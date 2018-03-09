@@ -402,15 +402,18 @@ namespace model
         const double accuracy_goal;
         const size_t iters;
         const parameters & p;
+        const std::vector < double > & charges;
     public:
         finel_galerkin(const parameters & p,
                        util::ptr_t < geom::mesh > m,
+                       const std::vector < double > & charges,
                        double accuracy_goal,
                        size_t iters = 100)
             : p(p)
             , m(m)
             , iters(iters)
             , accuracy_goal(accuracy_goal)
+            , charges(charges)
         {
         }
     public:
