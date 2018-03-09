@@ -78,9 +78,16 @@ namespace model
         plot::list_drawable < points_t > :: ptr_t plot;
     };
 
+    struct multiplot_data
+    {
+        util::ptr_t < std::vector < points_t > > data;
+        plot::multilist_drawable < points_t > :: ptr_t plot;
+    };
+
     struct model_data
     {
         util::ptr_t < parameters > params;
+        multiplot_data isoline_data;
         plot_data   func_data;
         mesh_data   system_data;
     };
@@ -98,6 +105,24 @@ namespace model
             nullptr, // no point painter
             pen
         );
+        return pd;
+    }
+
+    inline static multiplot_data make_multiplot_data
+    (
+        plot::palette::pen_ptr pen = plot::palette::pen(0xffffff),
+        plot::list_data_format data_format = plot::list_data_format::chain
+    )
+    {
+        multiplot_data pd;
+        pd.data = util::create < std::vector < points_t > > ();
+        pd.plot = plot::multilist_drawable < points_t > :: create
+        (
+            plot::make_data_source(pd.data),
+            nullptr, // no point painter
+            pen
+        );
+        pd.plot->data_format = data_format;
         return pd;
     }
 
@@ -256,6 +281,8 @@ namespace model
         model_data md;
         md.params = util::create < parameters > (p);
         md.func_data = make_plot_data(plot::palette::pen(0xffffff, 2));
+        md.isoline_data = make_multiplot_data(plot::palette::pen(0xffffff, 2),
+                                              plot::list_data_format::segment);
         md.system_data = make_system_data(*md.params);
         adjust(*md.params, *md.system_data.world);
         return md;
