@@ -671,8 +671,6 @@ namespace model
 
         void _calc_field();
 
-        geom::mesh::idx_t _find_triangle(const geom::point2d_t & p) const;
-
         void _adjust_particle(particle & pt, const geom::point2d_t & n) const;
     };
 
@@ -742,29 +740,12 @@ namespace model
         }
     }
 
-    inline geom::mesh::idx_t particle_particle::_find_triangle(
-        const geom::point2d_t & p) const
-    {
-        auto dc = m->find_nearest(p);
-        if (dc == SIZE_T_MAX) return SIZE_T_MAX;
-        auto & nh = m->vertices()[dc].neighborhood.path;
-        for (size_t i = 0; i < nh.size(); ++i)
-        {
-            if (geom::status::is(m->triangle_at(nh[i]).contains(p),
-                    geom::status::polygon::contains_point))
-            {
-                return nh[i];
-            }
-        }
-        return nh.front();
-    }
-
     inline void particle_particle::adjust_particles()
     {
         _calc_field();
         for (auto it = particles.begin(); it != particles.end(); ++it)
         {
-            auto t = _find_triangle(it->x);
+            auto t = m->find_triangle(it->x);
             if (t == SIZE_T_MAX)
                 continue;
             _adjust_particle(*it, field[t]);
