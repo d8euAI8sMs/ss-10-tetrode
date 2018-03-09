@@ -60,11 +60,16 @@ namespace model
         const material_t grid    = cathode | anode | grid1 | grid2;
     };
 
+    struct particle
+    {
+        geom::point2d_t x, v;
+    };
+
     struct mesh_data
     {
         plot::world_t::ptr_t world;
         util::ptr_t < geom::mesh > mesh;
-        util::ptr_t < points_t > data;
+        util::ptr_t < std::vector < particle > > data;
         plot::triangulation_drawable :: ptr_t triangulation_plot;
         plot::dirichlet_cell_drawable :: ptr_t dirichlet_cell_plot;
         plot::drawable::ptr_t system_plot;
@@ -189,7 +194,7 @@ namespace model
 
             for (size_t i = 0; i < m.data->size(); ++i)
             {
-                point_painter.draw_at(dc, vp, m.data->at(i));
+                point_painter.draw_at(dc, vp, m.data->at(i).x);
             }
         };
     }
