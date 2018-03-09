@@ -614,4 +614,165 @@ namespace model
                 r[k] = _potential_of(k);
         }
     }
+
+    /* *************************************************
+       ************ Particle-Grid Simulation ***********
+       ************************************************* */
+
+    class particle_particle
+    {
+    private:
+        std::vector < particle > & particles;
+        util::ptr_t < geom::mesh > m;
+        const parameters & p;
+        std::vector < double > areas;
+    public:
+        std::vector < double > charges;
+        std::vector < double > potential;
+        std::vector < geom::point2d_t > field;
+    public:
+        particle_particle(const parameters & p,
+                          util::ptr_t < geom::mesh > m,
+                          std::vector < particle > & particles)
+            : p(p)
+            , m(std::move(m))
+            , particles(particles)
+        {
+        }
+    public:
+        void init();
+        void collect_charges();
+        void adjust_particles();
+    private:
+        double _area(const geom::point2d_t & p1,
+                     const geom::point2d_t & p2,
+                     const geom::point2d_t & p3) const
+        {
+            auto p12 = p2 - p1, p13 = p3 - p1;
+            return std::abs(p12.x * p13.y - p12.y * p13.x) / 2;
+        }
+
+        double _area(geom::mesh::idx_t dc) const
+        {
+            double r = 0;
+            auto & p = m->vertices()[dc].neighborhood.path;
+            for (size_t j = 1, k = 2; k < p.size(); ++j, ++k)
+            {
+                r += _area(m->triangles()[p.front()].enclosing.center,
+                           m->triangles()[p[j]].enclosing.center,
+                           m->triangles()[p[k]].enclosing.center);
+            }
+            return r;
+        }
+
+        bool _grad(geom::mesh::idx_t t, geom::point2d_t & p) const;
+
+        void _calc_field();
+
+        geom::mesh::idx_t _find_triangle(const geom::point2d_t & p) const;
+
+        void _adjust_particle(particle & pt, const geom::point2d_t & n) const;
+    };
+
+    inline void particle_particle::init()
+    {
+        field.resize(m->triangles().size());
+        potential.resize(m->vertices().size());
+        charges.resize(m->vertices().size());
+        areas.resize(m->vertices().size());
+        for (geom::mesh::idx_t i = 0; i < m->vertices().size(); ++i)
+            areas[i] = _area(i);
+    }
+
+    inline void particle_particle::collect_charges()
+    {
+        for (geom::mesh::idx_t i = 0; i < charges.size(); ++i)
+        {
+            charges[i] = 0;
+        }
+        for (size_t i = 0; i < particles.size(); ++i)
+        {
+            auto dc = m->find_nearest(particles[i].x);
+            if (dc != SIZE_T_MAX)
+            {
+                charges[dc] += p.q / areas[dc];
+            }
+        }
+    }
+
+    inline bool particle_particle::_grad(
+        geom::mesh::idx_t t, geom::point2d_t & p) const
+    {
+        auto & ti = m->triangles()[t];
+        auto & p1 = m->point_at(ti.vertices[0]);
+        auto & p2 = m->point_at(ti.vertices[1]);
+        auto & p3 = m->point_at(ti.vertices[2]);
+
+        double d0 = (p2.x - p3.x) * p1.y +
+                    (p3.x - p1.x) * p2.y +
+                    (p1.x - p2.x) * p3.y;
+
+        double n1 = (p3.y - p2.y) * potential[ti.vertices[0]] +
+                    (p1.y - p3.y) * potential[ti.vertices[1]] +
+                    (p2.y - p1.y) * potential[ti.vertices[2]];
+        double n2 = (p2.x - p3.x) * potential[ti.vertices[0]] +
+                    (p3.x - p1.x) * potential[ti.vertices[1]] +
+                    (p1.x - p2.x) * potential[ti.vertices[2]];
+
+        p.x = n1 / d0;
+        p.y = n2 / d0;
+
+        if (!isfinite(p.x) || !isfinite(p.y))
+            return false;
+
+        return true;
+    }
+
+    inline void particle_particle::_calc_field()
+    {
+        geom::point2d_t n;
+        for (geom::mesh::idx_t i = 0; i < m->triangles().size(); ++i)
+        {
+            if (_grad(i, n))
+                field[i] = n;
+            else
+                field[i] = {};
+        }
+    }
+
+    inline geom::mesh::idx_t particle_particle::_find_triangle(
+        const geom::point2d_t & p) const
+    {
+        auto dc = m->find_nearest(p);
+        if (dc == SIZE_T_MAX) return SIZE_T_MAX;
+        auto & nh = m->vertices()[dc].neighborhood.path;
+        for (size_t i = 0; i < nh.size(); ++i)
+        {
+            if (geom::status::is(m->triangle_at(nh[i]).contains(p),
+                    geom::status::polygon::contains_point))
+            {
+                return nh[i];
+            }
+        }
+        return nh.front();
+    }
+
+    inline void particle_particle::adjust_particles()
+    {
+        _calc_field();
+        for (size_t i = 0; i < particles.size(); ++i)
+        {
+            auto t = _find_triangle(particles[i].x);
+            if (t == SIZE_T_MAX)
+                continue;
+            _adjust_particle(particles[i], field[t]);
+        }
+    }
+
+    inline void particle_particle::_adjust_particle(
+        particle & pt, const geom::point2d_t & n) const
+    {
+        pt.v += geom::point2d_t{ n.x * p.dt, n.y * p.dt };
+        pt.x += geom::point2d_t{ pt.v.x * p.dt, pt.v.y * p.dt };
+    }
 }
