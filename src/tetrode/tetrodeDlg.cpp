@@ -21,6 +21,9 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     , m_bPointsVisible(TRUE)
     , m_bTriangulationVisible(FALSE)
     , m_bDirichletCellsVisible(FALSE)
+    , m_bIsolineVisible(FALSE)
+    , m_nIsolineCount(100)
+    , m_lfIsolineDelta(0.1)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -46,6 +49,9 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK1, m_bPointsVisible);
     DDX_Check(pDX, IDC_CHECK2, m_bTriangulationVisible);
     DDX_Check(pDX, IDC_CHECK3, m_bDirichletCellsVisible);
+    DDX_Check(pDX, IDC_CHECK4, m_bIsolineVisible);
+    DDX_Text(pDX, IDC_EDIT17, m_nIsolineCount);
+    DDX_Text(pDX, IDC_EDIT18, m_lfIsolineDelta);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
@@ -57,6 +63,7 @@ BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
     ON_BN_CLICKED(IDC_CHECK1, &CTetrodeDlg::OnBnClickedCheck1)
     ON_BN_CLICKED(IDC_CHECK2, &CTetrodeDlg::OnBnClickedCheck1)
     ON_BN_CLICKED(IDC_CHECK3, &CTetrodeDlg::OnBnClickedCheck1)
+    ON_BN_CLICKED(IDC_CHECK4, &CTetrodeDlg::OnBnClickedCheck1)
 END_MESSAGE_MAP()
 
 
@@ -177,4 +184,5 @@ void CTetrodeDlg::OnBnClickedCheck1()
     data.system_data.point_plot->visible = (m_bPointsVisible == TRUE);
     data.system_data.triangulation_plot->visible = (m_bTriangulationVisible == TRUE);
     data.system_data.dirichlet_cell_plot->visible = (m_bDirichletCellsVisible == TRUE);
+    data.isoline_data.plot->visible = (m_bIsolineVisible == TRUE);
 }

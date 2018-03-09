@@ -46,4 +46,7 @@ public:
     BOOL m_bPointsVisible;
     BOOL m_bTriangulationVisible;
     BOOL m_bDirichletCellsVisible;
+    BOOL m_bIsolineVisible;
+    UINT m_nIsolineCount;
+    double m_lfIsolineDelta;
 };
