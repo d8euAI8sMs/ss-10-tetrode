@@ -646,25 +646,14 @@ namespace model
         void collect_charges();
         void adjust_particles();
     private:
-        double _area(const geom::point2d_t & p1,
-                     const geom::point2d_t & p2,
-                     const geom::point2d_t & p3) const
-        {
-            auto p12 = p2 - p1, p13 = p3 - p1;
-            return std::abs(p12.x * p13.y - p12.y * p13.x) / 2;
-        }
 
-        double _area(geom::mesh::idx_t dc) const
+        double _area(geom::mesh::idx_t t) const
         {
-            double r = 0;
-            auto & p = m->vertices()[dc].neighborhood.path;
-            for (size_t j = 1, k = 2; k < p.size(); ++j, ++k)
-            {
-                r += _area(m->triangles()[p.front()].enclosing.center,
-                           m->triangles()[p[j]].enclosing.center,
-                           m->triangles()[p[k]].enclosing.center);
-            }
-            return r;
+            auto p1 = m->point_at(m->triangles()[t].vertices[1]) -
+                m->point_at(m->triangles()[t].vertices[0]);
+            auto p2 = m->point_at(m->triangles()[t].vertices[2]) -
+                m->point_at(m->triangles()[t].vertices[0]);
+            return std::abs(p1.x * p2.y - p1.y * p2.x) / 2;
         }
 
         bool _grad(geom::mesh::idx_t t, geom::point2d_t & p) const;
@@ -679,8 +668,8 @@ namespace model
         field.resize(m->triangles().size());
         potential.resize(m->vertices().size());
         charges.resize(m->vertices().size());
-        areas.resize(m->vertices().size());
-        for (geom::mesh::idx_t i = 0; i < m->vertices().size(); ++i)
+        areas.resize(m->triangles().size());
+        for (geom::mesh::idx_t i = 0; i < m->triangles().size(); ++i)
             areas[i] = _area(i);
     }
 
@@ -692,10 +681,12 @@ namespace model
         }
         for (auto it = particles.begin(); it != particles.end(); ++it)
         {
-            auto dc = m->find_nearest(it->x);
+            auto dc = m->find_triangle(it->x);
             if (dc != SIZE_T_MAX)
             {
-                charges[dc] += p.q / areas[dc];
+                charges[m->triangles()[dc].vertices[0]] += p.q / areas[dc] / 3;
+                charges[m->triangles()[dc].vertices[1]] += p.q / areas[dc] / 3;
+                charges[m->triangles()[dc].vertices[2]] += p.q / areas[dc] / 3;
             }
         }
     }
