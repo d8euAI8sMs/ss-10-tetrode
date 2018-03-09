@@ -26,7 +26,7 @@ namespace model
         size_t ndt;
 
         // material params
-        double u1, u2, ua;
+        double u1, u2, ua, q;
     };
 
     inline static parameters make_default_parameters()
@@ -44,7 +44,7 @@ namespace model
             10, 1, 0.01, 100,
 
             // material params
-            1, 1, 1
+            1, 1, 1, 0.01
         };
     }
 
