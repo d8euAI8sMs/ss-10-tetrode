@@ -383,7 +383,7 @@ namespace model
     class finel_galerkin
     {
     private:
-        struct plane { double a, b; };
+        struct plane { double a, b, c; };
         struct sparse_matrix
         {
             std::vector < std::vector < std::pair < size_t, double > > > matrix;
@@ -469,7 +469,8 @@ namespace model
             return
             {
                 (p2.y - p3.y) / d,
-                (p3.x - p2.x) / d
+                (p3.x - p2.x) / d,
+                (p2.x * p3.y - p3.x * p2.y) / d
             };
         }
         else if (ti.vertices[1] == v)
@@ -477,7 +478,8 @@ namespace model
             return
             {
                 (p3.y - p1.y) / d,
-                (p1.x - p3.x) / d
+                (p1.x - p3.x) / d,
+                (p3.x * p1.y - p1.x * p3.y) / d
             };
         }
         else // if (ti.vertices[2] == v)
@@ -485,7 +487,8 @@ namespace model
             return
             {
                 (p1.y - p2.y) / d,
-                (p2.x - p1.x) / d
+                (p2.x - p1.x) / d,
+                (p1.x * p2.y - p2.x * p1.y) / d
             };
         }
     }
