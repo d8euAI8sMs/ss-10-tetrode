@@ -275,7 +275,7 @@ namespace model
         md.mesh->finish_mesh();
         md.mesh->build_neighborhood_tree();
 
-        md.data = util::create < std::vector < geom::point2d_t > > ();
+        md.data->clear();
     }
 
     inline mesh_data make_system_data(const parameters & p)
@@ -283,6 +283,8 @@ namespace model
         mesh_data md;
 
         md.world = plot::world_t::create();
+
+        md.data = util::create < std::vector < particle > > ();
 
         md.mesh = util::create < geom::mesh > (false, false);
 
