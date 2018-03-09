@@ -91,12 +91,22 @@ BOOL CTetrodeDlg::OnInitDialog()
         data.system_data.point_plot
     }));
 
+    m_cAnodeCurrentPlot.plot_layer.with(model::make_root_drawable(
+        plot::make_world_mapper(data.func_data.world), {
+        data.func_data.plot
+    }));
+
     m_cSystemPlot.background = plot::palette::brush();
     m_cSystemPlot.triple_buffered = true;
+    m_cAnodeCurrentPlot.background = plot::palette::brush();
+    m_cAnodeCurrentPlot.triple_buffered = true;
 
     m_cSystemPlot.RedrawBuffer();
     m_cSystemPlot.SwapBuffers();
     m_cSystemPlot.RedrawWindow();
+    m_cAnodeCurrentPlot.RedrawBuffer();
+    m_cAnodeCurrentPlot.SwapBuffers();
+    m_cAnodeCurrentPlot.RedrawWindow();
 
     return TRUE;  // return TRUE  unless you set the focus to a control
 }
