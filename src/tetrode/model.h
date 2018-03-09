@@ -424,8 +424,10 @@ namespace model
         bool _check_accuracy();
         plane _make_plane(geom::mesh::idx_t t,
                           geom::mesh::idx_t v) const;
+        /* < grad phi_i | grad phi_k > */
         double _dot(geom::mesh::idx_t i,
                     geom::mesh::idx_t j) const;
+        /* < rho_i | phi_k > */
         double _charge_dot(geom::mesh::idx_t i,
                            geom::mesh::idx_t j) const;
         bool _is_var(geom::mesh::idx_t v) const;
