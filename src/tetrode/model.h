@@ -2,6 +2,8 @@
 
 #include <afxwin.h>
 
+#include <list>
+
 #include <util/common/geom/geom.h>
 #include <util/common/plot/plot.h>
 #include <util/common/plot/triangulation_drawable.h>
@@ -69,7 +71,7 @@ namespace model
     {
         plot::world_t::ptr_t world;
         util::ptr_t < geom::mesh > mesh;
-        util::ptr_t < std::vector < particle > > data;
+        util::ptr_t < std::list < particle > > data;
         plot::triangulation_drawable :: ptr_t triangulation_plot;
         plot::dirichlet_cell_drawable :: ptr_t dirichlet_cell_plot;
         plot::drawable::ptr_t system_plot;
@@ -192,9 +194,9 @@ namespace model
             dc.MoveTo(vp.world_to_screen().xy({ params.x2, - params.h / 2 }));
             dc.LineTo(vp.world_to_screen().xy({ params.x2, + params.h / 2 }));
 
-            for (size_t i = 0; i < m.data->size(); ++i)
+            for each (auto & pt in *m.data)
             {
-                point_painter.draw_at(dc, vp, m.data->at(i).x);
+                point_painter.draw_at(dc, vp, pt.x);
             }
         };
     }
@@ -284,7 +286,7 @@ namespace model
 
         md.world = plot::world_t::create();
 
-        md.data = util::create < std::vector < particle > > ();
+        md.data = util::create < std::list < particle > > ();
 
         md.mesh = util::create < geom::mesh > (false, false);
 
@@ -622,7 +624,7 @@ namespace model
     class particle_particle
     {
     private:
-        std::vector < particle > & particles;
+        std::list < particle > & particles;
         util::ptr_t < geom::mesh > m;
         const parameters & p;
         std::vector < double > areas;
@@ -633,7 +635,7 @@ namespace model
     public:
         particle_particle(const parameters & p,
                           util::ptr_t < geom::mesh > m,
-                          std::vector < particle > & particles)
+                          std::list < particle > & particles)
             : p(p)
             , m(std::move(m))
             , particles(particles)
@@ -690,9 +692,9 @@ namespace model
         {
             charges[i] = 0;
         }
-        for (size_t i = 0; i < particles.size(); ++i)
+        for (auto it = particles.begin(); it != particles.end(); ++it)
         {
-            auto dc = m->find_nearest(particles[i].x);
+            auto dc = m->find_nearest(it->x);
             if (dc != SIZE_T_MAX)
             {
                 charges[dc] += p.q / areas[dc];
@@ -760,12 +762,12 @@ namespace model
     inline void particle_particle::adjust_particles()
     {
         _calc_field();
-        for (size_t i = 0; i < particles.size(); ++i)
+        for (auto it = particles.begin(); it != particles.end(); ++it)
         {
-            auto t = _find_triangle(particles[i].x);
+            auto t = _find_triangle(it->x);
             if (t == SIZE_T_MAX)
                 continue;
-            _adjust_particle(particles[i], field[t]);
+            _adjust_particle(*it, field[t]);
         }
     }
 
