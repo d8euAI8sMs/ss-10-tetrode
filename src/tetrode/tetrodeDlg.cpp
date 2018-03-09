@@ -178,12 +178,63 @@ void CTetrodeDlg::OnSimulation()
     Invoke([&] () { sm = m_eSimulationMode; });
     model::adjust(*data.params, *data.system_data.world);
     model::update_system_data(*data.params, data.system_data);
+    model::particle_particle pp
+    (
+        *data.params,
+        data.system_data.mesh,
+        *data.system_data.data
+    );
+    pp.init();
+
+    size_t ndt = 0;
+    double current = 0;
+
     while (m_bWorking)
     {
-        Sleep(1000); // stub
-
         if (sm == sm_it)
         {
+            model::finel_galerkin g
+            (
+                *data.params,
+                data.system_data.mesh,
+                pp.charges, m_lfAccuracyGoal, 1000
+            );
+            g.init();
+
+            pp.generate_particles();
+
+            double q0 = pp.collect_charges();
+
+            g.next(pp.potential);
+
+            pp.adjust_particles();
+
+            if (m_bIsolineVisible)
+            {
+                model::find_isolines(*data.system_data.mesh,
+                                     pp.potential,
+                                     m_lfIsolineDelta,
+                                     m_nIsolineCount,
+                                     *data.isoline_data.data);
+            }
+
+            current += q0;
+            ++ndt;
+
+            if ((ndt % data.params->ndt) == 0)
+            {
+                current /= ndt * data.params->dt;
+                double t = 0;
+                if (!data.func_data.data->empty())
+                    t = data.func_data.data->back().x + data.params->dt;
+                data.func_data.world->xmax = t;
+                data.func_data.world->ymax =
+                    max(data.func_data.world->ymax, current);
+                data.func_data.data->push_back({ t, current });
+                current = 0;
+                ndt = 0;
+            }
+
             m_cSystemPlot.RedrawBuffer();
             m_cSystemPlot.SwapBuffers();
             m_cAnodeCurrentPlot.RedrawBuffer();
