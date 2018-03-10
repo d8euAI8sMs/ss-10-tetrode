@@ -24,7 +24,7 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     , m_bIsolineVisible(FALSE)
     , m_nIsolineCount(100)
     , m_lfIsolineDelta(0.1)
-    , m_lfAccuracyGoal(1e-12)
+    , m_lfAccuracyGoal(1e-4)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
