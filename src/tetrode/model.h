@@ -662,7 +662,8 @@ namespace model
     inline void finel_galerkin::next(std::vector < double > & r)
     {
         x[0] = x1[0] = 0.5f;
-        for (size_t i = 1; i < x.size(); ++i)
+        #pragma omp parallel for
+        for (int i = 1; i < (int)x.size(); ++i)
             x[i] = x1[i] = 0;
 
         for (;;)
@@ -673,7 +674,8 @@ namespace model
         };
 
         r.resize(m->vertices().size());
-        for (size_t k = 0; k < m->vertices().size(); ++k)
+        #pragma omp parallel for
+        for (int k = 0; k < (int)m->vertices().size(); ++k)
         {
             if (vars[k] != SIZE_T_MAX)
                 r[k] = x[vars[k]];
