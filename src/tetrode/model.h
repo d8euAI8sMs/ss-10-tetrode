@@ -748,13 +748,25 @@ namespace model
         void generate_particles();
     private:
 
-        double _area(geom::mesh::idx_t t) const
+        double _area(const geom::point2d_t & p1,
+                     const geom::point2d_t & p2,
+                     const geom::point2d_t & p3) const
         {
-            auto p1 = m->point_at(m->triangles()[t].vertices[1]) -
-                m->point_at(m->triangles()[t].vertices[0]);
-            auto p2 = m->point_at(m->triangles()[t].vertices[2]) -
-                m->point_at(m->triangles()[t].vertices[0]);
-            return std::abs(p1.x * p2.y - p1.y * p2.x) / 2;
+            auto p12 = p2 - p1, p13 = p3 - p1;
+            return std::abs(p12.x * p13.y - p12.y * p13.x) / 2;
+        }
+
+        double _area(geom::mesh::idx_t dc) const
+        {
+            double r = 0;
+            auto & p = m->vertices()[dc].neighborhood.path;
+            for (size_t j = 1, k = 2; k < p.size(); ++j, ++k)
+            {
+                r += _area(m->triangles()[p.front()].enclosing.center,
+                           m->triangles()[p[j]].enclosing.center,
+                           m->triangles()[p[k]].enclosing.center);
+            }
+            return r;
         }
 
         bool _grad(geom::mesh::idx_t t, geom::point2d_t & p) const;
@@ -769,10 +781,10 @@ namespace model
         field.resize(m->triangles().size());
         potential.resize(m->vertices().size());
         charges.resize(m->vertices().size());
-        areas.resize(m->triangles().size());
+        areas.resize(m->vertices().size());
 
         #pragma omp parallel for
-        for (int i0 = 0; i0 < (int)m->triangles().size(); ++i0)
+        for (int i0 = 0; i0 < (int)m->vertices().size(); ++i0)
         {
             geom::mesh::idx_t i(i0);
             areas[i] = _area(i);
@@ -813,21 +825,16 @@ namespace model
                     local_dead[cur_thread].push_back(i);
                     continue;
                 }
-                auto dc = m->find_triangle(particles[i].x);
-                if (dc != SIZE_T_MAX)
+                auto t = m->find_triangle(particles[i].x);
+                if (t != SIZE_T_MAX)
                 {
-                    _adjust_particle(particles[i], field[dc]);
-                    if (!m->triangle_at(dc).contains(particles[i].x))
-                        dc = m->find_triangle(particles[i].x);
+                    _adjust_particle(particles[i], field[t]);
                 }
+                auto dc = m->find_nearest(particles[i].x);
                 if (dc != SIZE_T_MAX)
                 {
                     #pragma omp atomic
-                    charges[m->triangles()[dc].vertices[0]] += p.q / areas[dc] / 3;
-                    #pragma omp atomic
-                    charges[m->triangles()[dc].vertices[1]] += p.q / areas[dc] / 3;
-                    #pragma omp atomic
-                    charges[m->triangles()[dc].vertices[2]] += p.q / areas[dc] / 3;
+                    charges[dc] += p.q / areas[dc];
                 }
             }
         }
