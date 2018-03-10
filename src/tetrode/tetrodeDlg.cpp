@@ -203,13 +203,11 @@ void CTetrodeDlg::OnSimulation()
         {
             g.update();
 
-            pp.generate_particles();
-
-            double q0 = pp.collect_charges();
-
             g.next(pp.potential);
 
-            pp.adjust_particles();
+            pp.generate_particles();
+
+            double q0 = pp.collect_charges_and_adjust_particles();
 
             if (m_bIsolineVisible)
             {
