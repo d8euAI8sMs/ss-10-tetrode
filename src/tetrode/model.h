@@ -831,7 +831,7 @@ namespace model
 
     inline void particle_particle::generate_particles()
     {
-        size_t n = (size_t)std::floor(p.i0 / p.dt);
+        size_t n = (size_t)std::floor(p.i0 * p.dt);
         for (size_t i = 0; i < n; ++i)
         {
             model::particle p0
