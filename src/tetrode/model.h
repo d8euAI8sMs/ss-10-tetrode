@@ -45,7 +45,7 @@ namespace model
             35, 65,
 
             // other params
-            10, 1, 0.01, 100,
+            10, 1, 1, 20,
 
             // material params
             1, 1, 1, 0.01
