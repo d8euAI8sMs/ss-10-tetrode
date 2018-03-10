@@ -402,7 +402,7 @@ namespace model
         std::vector < double > c;
         std::vector < double > x;
         std::vector < double > x1;
-        /* mapping: variable -> mesh vertice */
+        /* mapping: mesh vertice -> variable */
         std::vector < geom::mesh::idx_t > vars;
         const double accuracy_goal;
         const size_t iters;
@@ -592,36 +592,32 @@ namespace model
         geom::mesh::idx_t var = 0;
         for (geom::mesh::idx_t i = 0; i < m->vertices().size(); ++i)
         {
-            if (!_is_var(i)) continue;
-            vars[var] = i;
-            ++var;
+            if (!_is_var(i)) vars[i] = SIZE_T_MAX;
+            else             vars[i] = var++;
         }
-        vars.resize(var);
 
         x.resize(var);
         x1.resize(var);
 
         c.resize(var);
         a.matrix.resize(var);
-        for (geom::mesh::idx_t j = 0, vj = 0; j < m->vertices().size(); ++j)
+        for (geom::mesh::idx_t j = 0; j < m->vertices().size(); ++j)
         {
-            if (!_is_var(j)) continue;
-            for (geom::mesh::idx_t i = 0, vi = 0; i < m->vertices().size(); ++i)
+            if (vars[j] == SIZE_T_MAX) continue;
+            for (geom::mesh::idx_t i = 0; i < m->vertices().size(); ++i)
             {
-                if (_is_var(i))
+                if (vars[i] != SIZE_T_MAX)
                 {
                     auto d = _dot(i, j);
                     if (d != 0)
-                        a.matrix[vj].emplace_back(vi, d);
-                    ++vi;
+                        a.matrix[vars[j]].emplace_back(vars[i], d);
                 }
                 else
                 {
-                    c[vj] += - _potential_of(i) * _dot(i, j);
+                    c[vars[j]] += - _potential_of(i) * _dot(i, j);
                 }
-                c[vj] += _charge_dot(i, j);
+                c[vars[j]] += _charge_dot(i, j);
             }
-            ++vj;
         }
     }
 
@@ -677,10 +673,10 @@ namespace model
         };
 
         r.resize(m->vertices().size());
-        for (size_t j = 0, k = 0; k < m->vertices().size(); ++k)
+        for (size_t k = 0; k < m->vertices().size(); ++k)
         {
-            if ((j < a.matrix.size()) && (k == vars[j]))
-                r[k] = x[j++];
+            if (vars[k] != SIZE_T_MAX)
+                r[k] = x[vars[k]];
             else
                 r[k] = _potential_of(k);
         }
