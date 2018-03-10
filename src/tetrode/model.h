@@ -424,6 +424,7 @@ namespace model
     public:
         void next(std::vector < double > & r);
         void init();
+        void update();
     private:
         void _next();
         bool _check_accuracy();
@@ -622,6 +623,23 @@ namespace model
                 {
                     c[vars[j]] += - _potential_of(i) * _dot(i, j);
                 }
+                c[vars[j]] += _charge_dot(i, j);
+            }
+        }
+    }
+
+    inline void finel_galerkin::update()
+    {
+        #pragma omp parallel for
+        for (int j = 0; j < (int)m->vertices().size(); ++j)
+        {
+            if (vars[j] == SIZE_T_MAX) continue;
+            c[vars[j]] = 0;
+            #pragma omp parallel for firstprivate(j)
+            for (int i = 0; i < (int)m->vertices().size(); ++i)
+            {
+                if (vars[i] == SIZE_T_MAX)
+                    c[vars[j]] += - _potential_of(i) * _dot(i, j);
                 c[vars[j]] += _charge_dot(i, j);
             }
         }
