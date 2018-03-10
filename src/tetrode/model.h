@@ -251,6 +251,15 @@ namespace model
             md.mesh->add(geom::point2d_t(i * p.dx, -p.h / 2 + j * p.dy));
         }
 
+        double anode_dx = p.dx / 3;
+        size_t anode_n = 3;
+
+        for (size_t i = 0; i < anode_n; ++i)
+        for (size_t j = 0; j < n; ++j)
+        {
+            md.mesh->add(geom::point2d_t(anode_dx * (i + 0.5), - p.h / 2 + p.dy * (double) j));
+        }
+
         for (size_t i = 0; i < n; ++i)
         {
             md.mesh->add(geom::point2d_t(i * p.dx, -19 * p.h), material::ext);
