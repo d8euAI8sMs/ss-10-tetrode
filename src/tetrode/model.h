@@ -735,9 +735,8 @@ namespace model
         }
     public:
         void init();
-        double collect_charges();
+        double collect_charges_and_adjust_particles();
         void generate_particles();
-        void adjust_particles();
     private:
 
         double _area(geom::mesh::idx_t t) const
@@ -771,8 +770,10 @@ namespace model
         }
     }
 
-    inline double particle_particle::collect_charges()
+    inline double particle_particle::collect_charges_and_adjust_particles()
     {
+        _calc_field();
+
         size_t cur = 0;
         #pragma omp parallel for
         for (int i0 = 0; i0 < (int)charges.size(); ++i0)
@@ -804,6 +805,12 @@ namespace model
                     continue;
                 }
                 auto dc = m->find_triangle(particles[i].x);
+                if (dc != SIZE_T_MAX)
+                {
+                    _adjust_particle(particles[i], field[dc]);
+                    if (!m->triangle_at(dc).contains(particles[i].x))
+                        dc = m->find_triangle(particles[i].x);
+                }
                 if (dc != SIZE_T_MAX)
                 {
                     #pragma omp atomic
@@ -885,20 +892,6 @@ namespace model
                 field[i] = n;
             else
                 field[i] = {};
-        }
-    }
-
-    inline void particle_particle::adjust_particles()
-    {
-        _calc_field();
-        #pragma omp parallel for
-        for (int i = 0; i < (int)particles.size(); ++i)
-        {
-            if (!particles[i].alive) continue;
-            auto t = m->find_triangle(particles[i].x);
-            if (t == SIZE_T_MAX)
-                continue;
-            _adjust_particle(particles[i], field[t]);
         }
     }
 
