@@ -186,6 +186,13 @@ void CTetrodeDlg::OnSimulation()
         *data.system_data.data
     );
     pp.init();
+    model::finel_galerkin g
+    (
+        *data.params,
+        data.system_data.mesh,
+        pp.charges, m_lfAccuracyGoal, 1000
+    );
+    g.init();
 
     size_t ndt = 0;
     double current = 0;
@@ -194,13 +201,7 @@ void CTetrodeDlg::OnSimulation()
     {
         if (sm == sm_it)
         {
-            model::finel_galerkin g
-            (
-                *data.params,
-                data.system_data.mesh,
-                pp.charges, m_lfAccuracyGoal, 1000
-            );
-            g.init();
+            g.update();
 
             pp.generate_particles();
 
