@@ -25,6 +25,9 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     , m_nIsolineCount(100)
     , m_lfIsolineDelta(0.1)
     , m_lfAccuracyGoal(1e-4)
+    , m_lfAnodeBeginPotential(-10)
+    , m_lfAnodeEndPotential(10)
+    , m_nAnodePotentialSamples(21)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -54,6 +57,9 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT17, m_nIsolineCount);
     DDX_Text(pDX, IDC_EDIT18, m_lfIsolineDelta);
     DDX_Text(pDX, IDC_EDIT15, m_lfAccuracyGoal);
+    DDX_Text(pDX, IDC_EDIT16, m_nAnodePotentialSamples);
+    DDX_Text(pDX, IDC_EDIT13, m_lfAnodeBeginPotential);
+    DDX_Text(pDX, IDC_EDIT14, m_lfAnodeEndPotential);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)

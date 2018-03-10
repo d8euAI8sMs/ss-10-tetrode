@@ -48,6 +48,9 @@ public:
     BOOL m_bDirichletCellsVisible;
     BOOL m_bIsolineVisible;
     UINT m_nIsolineCount;
+    UINT m_nAnodePotentialSamples;
     double m_lfIsolineDelta;
     double m_lfAccuracyGoal;
+    double m_lfAnodeBeginPotential;
+    double m_lfAnodeEndPotential;
 };
