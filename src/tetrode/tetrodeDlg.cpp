@@ -250,6 +250,45 @@ void CTetrodeDlg::OnSimulation()
                 m_cAnodeCurrentPlot.RedrawWindow();
             });
         }
+        else // if (sm == sm_iv)
+        {
+            data.func_data.data->clear();
+            data.func_data.world->xmin = m_lfAnodeBeginPotential;
+            data.func_data.world->xmax = m_lfAnodeEndPotential;
+            data.func_data.world->ymin = 0;
+            data.func_data.world->ymax = 0;
+            double pd = (m_lfAnodeEndPotential - m_lfAnodeBeginPotential) /
+                m_nAnodePotentialSamples;
+            for (size_t i = 0; (i < m_nAnodePotentialSamples) && m_bWorking; ++i)
+            {
+                double ap = m_lfAnodeBeginPotential + pd * i;
+                data.params->ua = ap;
+
+                for (size_t j = 0; j < data.params->ndt; ++j)
+                {
+                    g.update();
+                    g.next(pp.potential);
+                    pp.generate_particles();
+                    current += pp.collect_charges_and_adjust_particles();
+                }
+
+                current /= data.params->ndt * data.params->dt;
+                data.func_data.world->ymax =
+                    max(data.func_data.world->ymax, current);
+                data.func_data.world->ymin =
+                    min(data.func_data.world->ymin, current);
+                data.func_data.data->push_back({ ap, current });
+                current = 0;
+
+                m_cAnodeCurrentPlot.RedrawBuffer();
+                m_cAnodeCurrentPlot.SwapBuffers();
+                Invoke([this] () {
+                    m_cAnodeCurrentPlot.RedrawWindow();
+                });
+            }
+            data.func_data.data->clear();
+            break;
+        }
     }
     CSimulationDialog::OnSimulation();
 }
