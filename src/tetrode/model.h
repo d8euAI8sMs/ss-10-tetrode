@@ -601,16 +601,22 @@ namespace model
 
         c.resize(var);
         a.matrix.resize(var);
-        for (geom::mesh::idx_t j = 0; j < m->vertices().size(); ++j)
+
+        #pragma omp parallel for
+        for (int j = 0; j < (int)m->vertices().size(); ++j)
         {
             if (vars[j] == SIZE_T_MAX) continue;
-            for (geom::mesh::idx_t i = 0; i < m->vertices().size(); ++i)
+            #pragma omp parallel for firstprivate(j)
+            for (int i = 0; i < (int)m->vertices().size(); ++i)
             {
                 if (vars[i] != SIZE_T_MAX)
                 {
                     auto d = _dot(i, j);
                     if (d != 0)
+                    {
+                        #pragma omp critical
                         a.matrix[vars[j]].emplace_back(vars[i], d);
+                    }
                 }
                 else
                 {
