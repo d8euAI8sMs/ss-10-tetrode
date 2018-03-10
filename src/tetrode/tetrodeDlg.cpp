@@ -166,7 +166,7 @@ void CTetrodeDlg::OnBnClickedButton1()
 
 void CTetrodeDlg::OnBnClickedButton3()
 {
-    m_eSimulationMode = sm_it;
+    m_eSimulationMode = sm_iv;
     UpdateData(TRUE);
     StartSimulationThread();
 }
