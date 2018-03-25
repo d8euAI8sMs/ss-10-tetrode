@@ -103,7 +103,8 @@ BOOL CTetrodeDlg::OnInitDialog()
 
     m_cAnodeCurrentPlot.plot_layer.with(model::make_root_drawable(
         plot::make_world_mapper(data.func_data.world), {
-        data.func_data.plot
+        data.func_data.plot,
+        data.alt_func_data.plot
     }));
 
     m_cSystemPlot.background = plot::palette::brush();
@@ -256,16 +257,19 @@ void CTetrodeDlg::OnSimulation()
         else // if (sm == sm_iv)
         {
             data.func_data.data->clear();
+            data.alt_func_data.data->clear();
             data.func_data.world->xmin = m_lfAnodeBeginPotential;
             data.func_data.world->xmax = m_lfAnodeEndPotential;
             data.func_data.world->ymin = 0;
             data.func_data.world->ymax = 0;
             double pd = (m_lfAnodeEndPotential - m_lfAnodeBeginPotential) /
                 m_nAnodePotentialSamples;
-            for (size_t i = 0; (i < m_nAnodePotentialSamples) && m_bWorking; ++i)
+            bool reverse = false;
+            for (size_t i = 0; (i <= m_nAnodePotentialSamples) && m_bWorking; ++i)
             {
-                double ap = m_lfAnodeBeginPotential + pd * i;
-                data.params->ua = ap;
+                double ap;
+                if (!reverse) ap = m_lfAnodeBeginPotential + pd * i;
+                else          ap = m_lfAnodeEndPotential - pd * i;
 
                 switch (ivm)
                 {
@@ -293,7 +297,8 @@ void CTetrodeDlg::OnSimulation()
                     max(data.func_data.world->ymax, current);
                 data.func_data.world->ymin =
                     min(data.func_data.world->ymin, current);
-                data.func_data.data->push_back({ ap, current });
+                if (!reverse) data.func_data.data->push_back({ ap, current });
+                else          data.alt_func_data.data->push_back({ ap, current });
                 current = 0;
 
                 m_cAnodeCurrentPlot.RedrawBuffer();
@@ -301,8 +306,16 @@ void CTetrodeDlg::OnSimulation()
                 Invoke([this] () {
                     m_cAnodeCurrentPlot.RedrawWindow();
                 });
+
+                if (!reverse && (i == m_nAnodePotentialSamples))
+                {
+                    reverse = true;
+                    data.alt_func_data.data->push_back(data.func_data.data->back());
+                    i = 0; // ++i post-action -> i = 1
+                }
             }
             data.func_data.data->clear();
+            data.alt_func_data.data->clear();
             break;
         }
     }

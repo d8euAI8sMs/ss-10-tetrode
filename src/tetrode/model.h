@@ -99,6 +99,7 @@ namespace model
         util::ptr_t < parameters > params;
         multiplot_data isoline_data;
         plot_data   func_data;
+        plot_data   alt_func_data;
         mesh_data   system_data;
     };
 
@@ -322,6 +323,7 @@ namespace model
         model_data md;
         md.params = util::create < parameters > (p);
         md.func_data = make_plot_data(plot::palette::pen(0xffffff, 2));
+        md.alt_func_data = make_plot_data(plot::palette::pen(0x77ff77, 2));
         md.isoline_data = make_multiplot_data(plot::palette::pen(0xffffff, 2),
                                               plot::list_data_format::segment);
         md.system_data = make_system_data(*md.params);
