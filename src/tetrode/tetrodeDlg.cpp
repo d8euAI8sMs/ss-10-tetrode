@@ -28,6 +28,7 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     , m_lfAnodeBeginPotential(-10)
     , m_lfAnodeEndPotential(10)
     , m_nAnodePotentialSamples(21)
+    , m_sWhichIV(0)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -60,6 +61,7 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT16, m_nAnodePotentialSamples);
     DDX_Text(pDX, IDC_EDIT13, m_lfAnodeBeginPotential);
     DDX_Text(pDX, IDC_EDIT14, m_lfAnodeEndPotential);
+    DDX_Radio(pDX, IDC_RADIO1, m_sWhichIV);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
@@ -182,7 +184,8 @@ void CTetrodeDlg::OnSimulation()
 {
     omp_set_num_threads(omp_get_num_procs());
     simulation_mode sm;
-    Invoke([&] () { sm = m_eSimulationMode; });
+    iv_mode ivm;
+    Invoke([&] () { sm = m_eSimulationMode; ivm = static_cast < iv_mode > (m_sWhichIV); });
     model::adjust(*data.params, *data.system_data.world);
     model::update_system_data(*data.params, data.system_data);
     model::particle_particle pp
@@ -263,6 +266,19 @@ void CTetrodeDlg::OnSimulation()
             {
                 double ap = m_lfAnodeBeginPotential + pd * i;
                 data.params->ua = ap;
+
+                switch (ivm)
+                {
+                case iv1:
+                    data.params->u1 = ap;
+                    break;
+                case iv2:
+                    data.params->u2 = ap;
+                    break;
+                case iva:
+                default:
+                    data.params->ua = ap;
+                }
 
                 for (size_t j = 0; j < data.params->ndt; ++j)
                 {
