@@ -29,6 +29,7 @@ CTetrodeDlg::CTetrodeDlg(CWnd* pParent /*=NULL*/)
     , m_lfAnodeEndPotential(10)
     , m_nAnodePotentialSamples(21)
     , m_sWhichIV(0)
+    , m_nOffsetDt(50)
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -62,6 +63,7 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT13, m_lfAnodeBeginPotential);
     DDX_Text(pDX, IDC_EDIT14, m_lfAnodeEndPotential);
     DDX_Radio(pDX, IDC_RADIO1, m_sWhichIV);
+    DDX_Text(pDX, IDC_EDIT19, m_nOffsetDt);
 }
 
 BEGIN_MESSAGE_MAP(CTetrodeDlg, CSimulationDialog)
@@ -262,6 +264,7 @@ void CTetrodeDlg::OnSimulation()
             data.func_data.world->xmax = m_lfAnodeEndPotential;
             data.func_data.world->ymin = 0;
             data.func_data.world->ymax = 0;
+
             double pd = (m_lfAnodeEndPotential - m_lfAnodeBeginPotential) /
                 m_nAnodePotentialSamples;
             bool reverse = false;
@@ -282,6 +285,17 @@ void CTetrodeDlg::OnSimulation()
                 case iva:
                 default:
                     data.params->ua = ap;
+                }
+
+                if (!reverse && (i == 0))
+                {
+                    for (size_t j = 0; j < m_nOffsetDt; ++j)
+                    {
+                        g.update();
+                        g.next(pp.potential);
+                        pp.generate_particles();
+                        pp.collect_charges_and_adjust_particles();
+                    }
                 }
 
                 for (size_t j = 0; j < data.params->ndt; ++j)

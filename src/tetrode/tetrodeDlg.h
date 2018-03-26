@@ -55,4 +55,5 @@ public:
     double m_lfAnodeBeginPotential;
     double m_lfAnodeEndPotential;
     int m_sWhichIV;
+    UINT m_nOffsetDt;
 };
