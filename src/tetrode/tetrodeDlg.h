@@ -19,7 +19,7 @@ public:
     enum { IDD = IDD_TETRODE_DIALOG };
 
     enum simulation_mode { sm_iv, sm_it };
-    enum iv_mode : int { iva = 0, iv1 = 1, iv2 = 2 };
+    enum iv_mode : int { iva = 0, iv2 = 1, iv1 = 2 };
 
     protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
