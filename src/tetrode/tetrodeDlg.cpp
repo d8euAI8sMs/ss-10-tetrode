@@ -44,9 +44,11 @@ void CTetrodeDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT2, data.params->i0);
     DDX_Text(pDX, IDC_EDIT7, data.params->u1);
     DDX_Text(pDX, IDC_EDIT8, data.params->u2);
+    DDX_Text(pDX, IDC_EDIT20, data.params->u3);
     DDX_Text(pDX, IDC_EDIT9, data.params->ua);
     DDX_Text(pDX, IDC_EDIT10, data.params->x1);
     DDX_Text(pDX, IDC_EDIT11, data.params->x2);
+    DDX_Text(pDX, IDC_EDIT21, data.params->x3);
     DDX_Text(pDX, IDC_EDIT12, data.params->w);
     DDX_Text(pDX, IDC_EDIT3, data.params->dt);
     DDX_Text(pDX, IDC_EDIT4, data.params->ndt);
@@ -281,6 +283,9 @@ void CTetrodeDlg::OnSimulation()
                     break;
                 case iv2:
                     data.params->u2 = ap;
+                    break;
+                case iv3:
+                    data.params->u3 = ap;
                     break;
                 case iva:
                 default:
