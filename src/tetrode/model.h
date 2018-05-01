@@ -23,14 +23,14 @@ namespace model
         double i0, v0;
 
         // geometry params
-        double x1, x2;
+        double x1, x2, x3;
 
         // other params
         double dx, dy, dt;
         size_t ndt;
 
         // material params
-        double u1, u2, ua, q;
+        double u1, u2, u3, ua, q;
     };
 
     inline static parameters make_default_parameters()
@@ -42,13 +42,13 @@ namespace model
             10, 1,
 
             // geometry params
-            35, 65,
+            25, 50, 75,
 
             // other params
             10, 1, 1, 20,
 
             // material params
-            1, 1, 1, 0.01
+            1, 1, 1, 1, 0.01
         };
     }
 
@@ -61,7 +61,8 @@ namespace model
         const material_t anode   = 0x1 << (2 + 10);
         const material_t grid1   = 0x1 << (3 + 10);
         const material_t grid2   = 0x1 << (4 + 10);
-        const material_t grid    = cathode | anode | grid1 | grid2;
+        const material_t grid3   = 0x1 << (5 + 10);
+        const material_t grid    = cathode | anode | grid1 | grid2 | grid3;
     };
 
     struct particle
@@ -198,6 +199,8 @@ namespace model
             dc.LineTo(vp.world_to_screen().xy({ params.x1, + params.h / 2 }));
             dc.MoveTo(vp.world_to_screen().xy({ params.x2, - params.h / 2 }));
             dc.LineTo(vp.world_to_screen().xy({ params.x2, + params.h / 2 }));
+            dc.MoveTo(vp.world_to_screen().xy({ params.x3, - params.h / 2 }));
+            dc.LineTo(vp.world_to_screen().xy({ params.x3, + params.h / 2 }));
 
             for each (auto & pt in *m.data)
             {
@@ -242,6 +245,7 @@ namespace model
             md.mesh->add(geom::point2d_t(p.w,  - p.h / 2 + grid_dy * (double) i), material::cathode);
             md.mesh->add(geom::point2d_t(p.x1, - p.h / 2 + grid_dy * (double) i), material::grid1);
             md.mesh->add(geom::point2d_t(p.x2, - p.h / 2 + grid_dy * (double) i), material::grid2);
+            md.mesh->add(geom::point2d_t(p.x3, - p.h / 2 + grid_dy * (double) i), material::grid3);
         }
 
         size_t n = size_t(std::floor(p.w / p.dx + 1));
@@ -282,10 +286,12 @@ namespace model
         md.mesh->add(geom::point2d_t(p.w,  - 10 * p.h), material::cathode);
         md.mesh->add(geom::point2d_t(p.x1, - 10 * p.h), material::grid1);
         md.mesh->add(geom::point2d_t(p.x2, - 10 * p.h), material::grid2);
+        md.mesh->add(geom::point2d_t(p.x3, - 10 * p.h), material::grid3);
         md.mesh->add(geom::point2d_t(0,    + 10 * p.h), material::anode);
         md.mesh->add(geom::point2d_t(p.w,  + 10 * p.h), material::cathode);
         md.mesh->add(geom::point2d_t(p.x1, + 10 * p.h), material::grid1);
         md.mesh->add(geom::point2d_t(p.x2, + 10 * p.h), material::grid2);
+        md.mesh->add(geom::point2d_t(p.x3, + 10 * p.h), material::grid3);
 
         md.mesh->build_polygons = true;
         md.mesh->finish_mesh();
@@ -475,6 +481,8 @@ namespace model
             return p.u1;
         else if (m->flags_at(i) & material::grid2)
             return p.u2;
+        else if (m->flags_at(i) & material::grid3)
+            return p.u3;
         return 0;
     }
 
